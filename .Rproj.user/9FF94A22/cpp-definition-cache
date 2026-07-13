@@ -1,0 +1,259 @@
+[
+    {
+        "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+        "file_last_write": 1783900800.0,
+        "definitions": [
+            {
+                "usr": "c:memwas_native.cpp@184@macro@R_NO_REMAP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "R_NO_REMAP",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 12,
+                "column": 10,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@as_scalar_real#*$@S@SEXPREC#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "as_scalar_real(SEXP, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 24,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@as_scalar_int#*$@S@SEXPREC#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "as_scalar_int(SEXP, int)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 34,
+                "column": 12,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@idx#I#I#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "idx(int, int, int)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 44,
+                "column": 24,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@clamp_double#d#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "clamp_double(double, double, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 48,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@soft_threshold_scalar#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "soft_threshold_scalar(double, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 53,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@max_abs_value#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "max_abs_value(const std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 59,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@all_finite#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "all_finite(const std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 68,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@symmetrize_square#&$@N@std@S@vector>#d#$@N@std@S@allocator>#d#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "symmetrize_square(std::vector<double> &, int)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 75,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@swap_rows#&$@N@std@S@vector>#d#$@N@std@S@allocator>#d#I#I#I#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "swap_rows(std::vector<double> &, int, int, int, int)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 87,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@gaussian_elimination_solve#$@N@std@S@vector>#d#$@N@std@S@allocator>#d#&S0_#I#I#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "gaussian_elimination_solve(std::vector<double>, std::vector<double> &, int, int, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 94,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@cholesky_upper#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#&S1_#I#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "cholesky_upper(const std::vector<double> &, std::vector<double> &, int, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 152,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@solve_with_jitter#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#S0_#I#I#d#b#&S1_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "solve_with_jitter(const std::vector<double> &, const std::vector<double> &, int, int, double, bool, std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 181,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@chol_with_jitter#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#I#d#&S1_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "chol_with_jitter(const std::vector<double> &, int, double, std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 216,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@quantile_type7#&$@N@std@S@vector>#d#$@N@std@S@allocator>#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "quantile_type7(std::vector<double> &, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 680,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@S@MemwasFamilyEval",
+                "kind": 3,
+                "parent_name": "",
+                "name": "MemwasFamilyEval",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 769,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_log1pexp#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_log1pexp(double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 777,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_safe_log#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_safe_log(double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 783,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_eval_family#d#d#&1$@N@std@N@__cxx11@S@basic_string>#C#$@N@std@S@char_traits>#C#$@N@std@S@allocator>#C#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_eval_family(double, double, const std::string &, double, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 787,
+                "column": 25,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_build_covariance_from_par#*1d#I#&1$@N@std@N@__cxx11@S@basic_string>#C#$@N@std@S@char_traits>#C#$@N@std@S@allocator>#C#&$@N@std@S@vector>#d#$@N@std@S@allocator>#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_build_covariance_from_par(const double *, int, const std::string &, std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 864,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_logdet_spd_cpp#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_logdet_spd_cpp(const std::vector<double> &, int)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 893,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_invert_spd_cpp#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#I#&S1_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_invert_spd_cpp(const std::vector<double> &, int, std::vector<double> &)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 902,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_group_logpost#*1d#S0_#S0_#*1I#I#I#I#I#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#S2_#S2_#d#&1$@N@std@N@__cxx11@S@basic_string>#C#$@N@std@S@char_traits>#C#$@N@std@S@allocator>#C#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_group_logpost(const double *, const double *, const double *, const int *, int, int, int, int, const std::vector<double> &, const std::vector<double> &, const std::vector<double> &, double, const std::string &, double, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 912,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@S@MemwasGroupApprox",
+                "kind": 3,
+                "parent_name": "",
+                "name": "MemwasGroupApprox",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 942,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:memwas_native.cpp@F@memwas_eval_group_approx#*1d#S0_#S0_#*1I#I#I#I#I#&1$@N@std@S@vector>#d#$@N@std@S@allocator>#d#S2_#S2_#d#&1$@N@std@N@__cxx11@S@basic_string>#C#$@N@std@S@char_traits>#C#$@N@std@S@allocator>#C#d#d#S5_#S2_#S2_#I#I#I#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "memwas_eval_group_approx(const double *, const double *, const double *, const int *, int, int, int, int, const std::vector<double> &, const std::vector<double> &, const std::vector<double> &, double, const std::string &, double, double, const std::string &, const std::vector<double> &, const std::vector<double> &, int, int, int, double)",
+                "file": "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/src/memwas_native.cpp",
+                "line": 956,
+                "column": 26,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    }
+]

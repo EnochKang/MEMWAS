@@ -1,0 +1,751 @@
+rm(list = ls());graphics.off();write("", file=".blank");
+loadhistory(".blank");unlink(".blank");gc();cat("\014")
+
+rm(list = ls()[-(which(ls()=="nma"))])
+
+
+data(package = .packages(all.available = TRUE))
+
+available::available("MEMWAS")
+#rm(list = c("GetMetrics", "PlotBeading"))
+
+#remove.packages("MEMWAS")
+devtools::document()
+
+#Sys.unsetenv("GITHUB_PAT")
+#devtools::install_github("EnochKang/rankinma")
+#usethis::use_package("netmeta")
+#install.packages("mvtnorm", repos="http://R-Forge.R-project.org")
+#usethis::use_package("mvtnorm")
+#usethis::use_import_from("graphics", c("axis", "barplot", "lines", "mtext", "par", "pie", "points", "rect", "segments", "text", "title"))
+#usethis::use_import_from("grDevices", c("col2rgb", "palette.colors", "rainbow", "recordPlot", "rgb"))
+#usethis::use_import_from(
+#  "stats", c("aggregate", "ave", "complete.cases", "setNames", "toeplitz"))
+#usethis::use_import_from("utils", "modifyList")
+#usethis::use_mit_license(copyright_holder = NULL)
+#usethis::use_gpl_license(version = 3, include_future = TRUE)
+roxygen2::roxygenize(package.dir = ".") # | usethis::use_roxygen_md()
+#pkgbuild::check_build_tools(debug = TRUE)
+#lsWang2022 <- nma
+#usethis::use_data(lsWang2022, compress = "bzip2", overwrite = TRUE)
+
+
+#usethis::use_testthat()
+usethis::use_test("set_MEMWAS", open = FALSE)
+usethis::use_test("fit_MEMWAS", open = FALSE)
+usethis::use_test("tune_MEMWAS", open = FALSE)
+usethis::use_test("compare_approximations", open = FALSE)
+usethis::use_test("diagnose_approximation", open = FALSE)
+usethis::use_test("serial_component", open = FALSE)
+#usethis::use_test("lagged-data", open = FALSE)
+#usethis::use_test("panel-data-simulation", open = FALSE)
+#usethis::use_test("simulate.MEMWAS_multi_serial_fit", open = FALSE)
+
+devtools::test()
+#usethis::use_news_md()
+#usethis::use_citation()
+devtools::build_manual()#"C:/Work/SMaRT/1. MnD/1. rankinma/1. R package")
+
+devtools::load_all(".") # VERY IMPORTANT!!! Load > Install & Restart (in environment)
+devtools::build()
+devtools::install()
+
+
+
+devtools::spell_check()
+devtools::run_examples()
+devtools::check()
+
+#rhub::check_for_cran()
+
+usethis::use_git()
+rhub::rhub_setup()
+
+usethis::create_github_token()
+gitcreds::gitcreds_set()
+
+rhub::rhub_doctor()
+
+rhub::rhub_check()
+
+#rsltCRAN <- rhubv2::check_for_cran();rsltCRAN
+#rhub::check(platforms = "windows-x86_64-devel")
+rsltWin <- devtools::check_win_devel();rsltWin
+
+#rhub::check_with_rrelease()
+#devtools::check_win_release()
+
+
+#devtools::release()
+#usethis::use_release_issue()
+#usethis::use_cran_comments()
+devtools::submit_cran()
+
+help(check)
+dataList$data.sets <- split(dataSet, dataSet$outcome)
+
+#tinytex::install_tinytex("makeindex", force = TRUE)
+Sys.which("makeindex")
+tinytex::tlmgr_install("makeindex")
+
+
+vignette("rankinma_vignette", package = "rankinma")
+vignette("rankinma")
+
+
+
+results
+help(rankinma)
+
+getwd( )
+setwd("C:/Work/SMaRT/1. MnD/1. TRIES/R package/rankinma")
+
+
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# MEMWAS logo -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 1. Set canvas -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+par(
+  mar = c(0, 0, 0, 0),
+  xaxs = "i",
+  yaxs = "i",
+  pty = "s",
+  bg = "white"
+)
+
+plot.new()
+plot.window(xlim = c(0, 1), ylim = c(0, 1), asp = 1)
+
+# Colors
+main_col   <- "#003A70"
+accent_col <- "#3FA7E8"
+light_col  <- "#EAF4FF"
+text_col   <- "#0B2447"
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 2. Regular hexagon background -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+cx <- 0.5
+cy <- 0.5
+r  <- 0.47
+
+theta <- pi / 2 + seq(0, 2 * pi, length.out = 7)[-7]
+
+hex_x <- cx + r * cos(theta)
+hex_y <- cy + r * sin(theta)
+
+# Soft shadow
+polygon(
+  hex_x + 0.006,
+  hex_y - 0.008,
+  col = adjustcolor("grey30", alpha.f = 0.15),
+  border = NA
+)
+
+# Main regular hexagon
+polygon(
+  hex_x,
+  hex_y,
+  col = "white",
+  border = main_col,
+  lwd = 7
+)
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 3. Longitudinal modeling icon -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+x0 <- 0.41
+x1 <- 0.59
+#y0 <- 0.615
+#y1 <- 0.765
+y0 <- 0.75
+y1 <- 0.90
+
+# Axes
+arrows(
+  x0 + 0.12 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  x0 + 0.94 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  length = 0.06,
+  lwd = 1.3,
+  col = "black"
+)
+
+arrows(
+  x0 + 0.12 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  x0 + 0.12 * (x1 - x0), y0 + 0.92 * (y1 - y0),
+  length = 0.06,
+  lwd = 1.3,
+  col = "black"
+)
+
+# Three longitudinal trajectories
+time_x <- c(0.22, 0.38, 0.55, 0.72, 0.88)
+
+#traj_1 <- c(0.55, 0.60, 0.57, 0.75, 0.99)
+#traj_2 <- c(0.38, 0.47, 0.57, 0.42, 0.53)
+#traj_3 <- c(0.25, 0.33, 0.41, 0.34, 0.44)
+traj_1 <- c(0.45, 0.48, 0.60, 0.70, 0.75)
+traj_2 <- c(0.35, 0.55, 0.65, 0.73, 0.65)
+traj_3 <- c(0.25, 0.45, 0.42, 0.75, 0.90)
+
+lines(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_1 * (y1 - y0),
+  col = "gray",
+  lwd = 2
+)
+points(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_1 * (y1 - y0),
+  pch = 16,
+  col = "gray",
+  cex = 1.1
+)
+
+lines(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_2 * (y1 - y0),
+  col = main_col,
+  lwd = 2
+)
+points(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_2 * (y1 - y0),
+  pch = 16,
+  col = main_col,
+  cex = 1.1
+)
+
+lines(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_3 * (y1 - y0),
+  col = accent_col,
+  lwd = 2
+)
+points(
+  x0 + time_x * (x1 - x0),
+  y0 + traj_3 * (y1 - y0),
+  pch = 16,
+  col = accent_col,
+  cex = 1.1
+)
+
+# Axis labels
+text(
+  x0 + 0.03 * (x1 - x0),
+  #y0 + 0.95 * (y1 - y0),
+  y0 + 0.5 * (y1 - y0),
+  #expression(y[it]),
+  "Response",
+  srt = 90,
+  cex = 0.6,
+  font = 1
+)
+
+#text(x0 + 0.22 * (x1 - x0), y0 + 0.08 * (y1 - y0), "1", cex = 0.5, font = 1)
+#text(x0 + 0.48 * (x1 - x0), y0 + 0.08 * (y1 - y0), "2", cex = 0.5, font = 1)
+#text(x0 + 0.68 * (x1 - x0), y0 + 0.08 * (y1 - y0), "...", cex = 0.8)
+#text(x0 + 0.88 * (x1 - x0), y0 + 0.08 * (y1 - y0), "T", cex = 0.5, font = 1)
+
+text(
+  0.5,
+  y0 + 0.08 * (y1 - y0),
+  "Time",
+  font = 1,
+  cex = 0.6
+)
+
+# Label below longitudinal icon
+text(
+  0.5,
+  y0 - 0.15 * (y1 - y0),
+  "----- Mixed-effects model of penal data -----",#"Longitudinal\nModeling",
+  cex = 0.7,
+  font = 2
+)
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 4. Structure line -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+segments(
+  0.5, 0.7,
+  0.5, 0.67,
+  col = "gray45", lwd = 2
+)
+segments(
+  0.21, 0.685,
+  0.79, 0.685,
+  col = "gray45", lwd = 2
+)
+segments(
+  0.21, 0.685,
+  0.21, 0.67,
+  col = "gray45", lwd = 2
+)
+segments(
+  0.79, 0.685,
+  0.79, 0.67,
+  col = "gray45", lwd = 2
+)
+
+text(
+  0.365, 0.55,
+  "+",
+  cex = 3,
+  col = "gray")
+
+text(
+  0.635, 0.55,
+  "+",
+  cex = 3,
+  col = "gray")
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 5. Fixed-effects icon -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+x0 <- 0.12
+x1 <- 0.30
+y0 <- 0.45
+y1 <- 0.65
+
+# Axes
+segments(
+  x0 + 0.12 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  x0 + 0.94 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  lwd = 1.3,
+  col = "black"
+)
+
+segments(
+  x0 + 0.12 * (x1 - x0), y0 + 0.18 * (y1 - y0),
+  x0 + 0.12 * (x1 - x0), y0 + 0.92 * (y1 - y0),
+  lwd = 1.3,
+  col = "black"
+)
+
+# Three longitudinal trajectories
+set.seed(20260707)
+point_x <- sample(c(0:100), 10, TRUE) / 100
+error <- sample(c(0:100), 10, TRUE) / 200
+point_y <- point_x * 0.5 + error
+
+polygon(
+  c(sort(x0 + point_x * (x1 - x0)), rev(sort(x0 + point_x * (x1 - x0)))),
+  c(sort(
+    y0 + predict(
+      lm(point_y ~ point_x),
+      newdata = data.frame(x = seq(min(point_x), max(point_x), length.out = 10)),
+      interval = "confidence", level = 0.95)[, "upr"] * (y1 - y0)),
+    rev(sort(
+      y0 + predict(
+        lm(point_y ~ point_x),
+        newdata = data.frame(x = seq(min(point_x), max(point_x), length.out = 10)),
+        interval = "confidence", level = 0.95)[, "lwr"] * (y1 - y0)))),
+  col = rgb(0.5, 0.8, 1, 0.7), border = NA
+)
+
+points(
+  x0 + point_x * (x1 - x0),
+  y0 + point_y * (y1 - y0),
+  pch = 16,
+  col = "gray",
+  cex = 1.1
+)
+
+lines(
+  sort(x0 + point_x * (x1 - x0)),
+  sort(y0 + predict(lm(point_y ~ point_x)) * (y1 - y0)),
+  col = main_col, lwd = 2)
+
+lines(
+  sort(x0 + point_x * (x1 - x0)),
+  sort(
+    y0 + predict(
+    lm(point_y ~ point_x),
+    newdata = data.frame(x = seq(min(point_x), max(point_x), length.out = 10)),
+    interval = "confidence", level = 0.95)[, "upr"] * (y1 - y0)),
+  col = accent_col, lwd = 2, lty = 2)
+lines(
+  sort(x0 + point_x * (x1 - x0)),
+  sort(
+    y0 + predict(
+      lm(point_y ~ point_x),
+      newdata = data.frame(x = seq(min(point_x), max(point_x), length.out = 10)),
+      interval = "confidence", level = 0.95)[, "lwr"] * (y1 - y0)),
+  col = accent_col, lwd = 2, lty = 2)
+
+
+# Axis labels
+text(
+  x0 + 0.03 * (x1 - x0),
+  #y0 + 0.95 * (y1 - y0),
+  y0 + 0.5 * (y1 - y0),
+  #expression(y[it]),
+  "Response",
+  srt = 90,
+  cex = 0.6,
+  font = 1
+)
+
+text(
+  x0 + 0.55 * (x1 - x0),
+  #y0 - 0.02 * (y1 - y0),
+  y0 + 0.1 * (y1 - y0),
+  "Fitted value",
+  font = 1,
+  cex = 0.6
+)
+
+# Label below longitudinal icon
+text(
+  #x0 + (x1 - x0) / 2,
+  x0 + 0.55 * (x1 - x0),
+  y0 - 0.01 * (y1 - y0),
+  "Fixed-effects",#"Longitudinal\nModeling",
+  cex = 0.7,
+  font = 2
+)
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 6. Random-effects estimation curve icon -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+x0 <- 0.430
+x1 <- 0.565
+
+# Baseline
+segments(
+  #0.435, 0.625,
+  #0.590, 0.625,
+  0.410, y0 + 0.18 * (y1 - y0),
+  0.590, y0 + 0.18 * (y1 - y0),
+  col = "black",
+  lwd = 1.2
+)
+
+# Center line
+segments(
+  #0.712, 0.640,
+  #0.712, 0.755,
+  0.5,
+  y0 + 0.18 * (y1 - y0),
+  0.5,
+  y0 + 0.92 * (y1 - y0),
+  col = main_col,
+  lwd = 1.4
+)
+
+
+# Two normal curves
+curve(
+  #0.625 + 0.105 * dnorm((x - 0.712) / 0.027) / dnorm(0),
+  #from = 0.635,
+  #to = , 0.790,
+  (y0 + 0.2 * (y1 - y0)) + 0.15 * dnorm((x - 0.5) / 0.027) / dnorm(0),
+  from = 0.41,
+  to = 0.59,
+  add = TRUE,
+  col = main_col,
+  lwd = 2.5,
+  lty = 3
+)
+
+curve(
+  #0.625 + 0.085 * dnorm((x - 0.712) / 0.038) / dnorm(0),
+  #from = 0.635,
+  #to = , 0.790,
+  (y0 + 0.21 * (y1 - y0)) + 0.08 * dnorm((x - 0.5) / 0.035) / dnorm(0),
+  from = 0.4,
+  to = 0.6,
+  add = TRUE,
+  col = accent_col,
+  lwd = 2,
+  lty = 1
+)
+
+curve(
+  (y0 + 0.22 * (y1 - y0)) + 0.1 * dnorm((x - 0.5) / 0.038) / dnorm(0),
+  from = 0.42,
+  to = 0.58,
+  add = TRUE,
+  col = "gray",
+  lwd = 2,
+  lty = 2
+)
+
+text(
+  0.5,
+  #y0 - 0.02 * (y1 - y0),
+  y0 + 0.1 * (y1 - y0),
+  "Approximation",
+  font = 1,
+  cex = 0.6
+)
+
+text(
+  0.5,
+  #y0 - 0.24 * (y1 - y0),
+  y0 - 0.01 * (y1 - y0),
+  "Random-effects",
+  cex = 0.7,
+  font = 2
+)
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 7. Autocorrelation heatmap matrix icon -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+x0 <- 0.73
+x1 <- 0.88
+y0 <- 0.485
+y1 <- 0.65
+
+n <- 6
+rho <- 0.72
+
+pal <- colorRampPalette(
+  c("#F2F8FD", "#6DC7EA", rgb(0, 0.5, 0.7, 1)) # main_col
+)(100)
+
+for (i in 1:n) {
+  for (j in 1:n) {
+
+    val <- rho ^ abs(i - j)
+    col_id <- max(1, min(100, round(val * 99) + 1))
+
+    rect(
+      x0 + (j - 1) / n * (x1 - x0),
+      y0 + (n - i) / n * (y1 - y0),
+      x0 + j / n * (x1 - x0),
+      y0 + (n - i + 1) / n * (y1 - y0),
+      col = pal[col_id],
+      border = "white",
+      lwd = 0.4
+    )
+  }
+}
+
+#rect(x0, y0, x1, y1, border = "black", lwd = 1.2)
+
+text(x0 - 0.020, y1, "1", cex = 0.5, font = 2)
+text(x0 - 0.020, y1 - (y1 - y0) / 4, "2", cex = 0.5, font = 2)
+text(x0 - 0.020, y1 - (y1 - y0) / 4 * 2, "...", cex = 0.8, srt = 90)
+text(x0 - 0.020, y0, "T", cex = 0.5, font = 2)
+
+text(x0, y0 - 0.1 * (y1 - y0), "1", cex = 0.5, font = 2)
+text(x0 + (x1 - x0) / 4, y0 - 0.1 * (y1 - y0), "2", cex = 0.5, font = 2)
+text(x0 + (x1 - x0) / 3 * 2, y0 - 0.1 * (y1 - y0), "...", cex = 0.8)
+text(x1, y0 - 0.1 * (y1 - y0), "T", cex = 0.5, font = 2)
+
+text(
+  (x0 +  x1) / 2,
+  y0 - 0.1 * (y1 - y0),
+  "", #"Time sequence",
+  font = 2,
+  cex = 0.6
+)
+
+text(
+  (x0 +  x1) / 2,
+  y0 - 0.23 * (y1 - y0),
+  "Autocorrelation",
+  cex = 0.7,
+  font = 2
+)
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 8. Key MEMWAS formula ----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+segments(
+  0.20, 0.4,
+  0.80, 0.4,
+  col = main_col,
+  lwd = 1.7
+)
+
+points(
+  0.5,
+  0.4,
+  pch = 16,
+  col = main_col,
+  cex = 1.3
+)
+
+text(
+  0.5,
+  0.35,
+  expression(g(mu[it]) == x[it]^T * beta + z[it]^T * b[i] + epsilon[it]),
+  cex = 1.2,
+  family = "serif"
+)
+
+# Person icon
+points(
+  0.4,
+  0.29,
+  pch = 16,
+  col = main_col,
+  cex = 1.5
+)
+
+polygon(
+  c(0.378, 0.422, 0.408, 0.392),
+  c(0.253, 0.253, 0.28, 0.28),
+  #c(hex_x[2] * 3.8, hex_x[2] * 3.9, hex_x[2] * 4.3, hex_x[2] * 4.4),
+  #c(hex_y[3] * 0.65, hex_y[3] * 0.75, hex_y[3] * 0.75, hex_y[3] * 0.65),
+  col = main_col,#
+  #col = "white",
+  border = main_col
+)
+
+text(
+  0.45,
+  0.285,
+  #hex_x[2] * 4.5,
+  #hex_y[3] * 0.75,
+  expression(b[i] %~% N(0, Sigma[b])),
+  cex = 1,
+  family = "serif",
+  #col = main_col,#"white",
+  pos = 4
+)
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 9. Bottom MEMWAS banner -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+banner_x <- c(hex_x[3], hex_x[4], hex_x[5])
+banner_y <- c(hex_y[3], hex_y[4], hex_y[3])
+
+polygon(
+  banner_x,
+  banner_y,
+  col = main_col,
+  border = main_col
+)
+
+
+# Residual wave icon
+wave_x <- seq(0, 1, length.out = 100)
+wave_y <- sin(2 * pi * wave_x)
+
+lines(
+  c(0.4 + (wave_x - 0.5) * 0.05)[c(1:60)],
+  c(0.255 + wave_y * 0.008)[c(1:60)],
+  #col = main_col,
+  col = "white",
+  lwd = 2, lty = 3
+)
+
+lines(
+  c(0.4 + (wave_x - 0.5) * 0.05)[c(61:100)],
+  c(0.255 + wave_y * 0.008)[c(61:100)],
+  #col = main_col,
+  col = "white",
+  lwd = 2
+)
+lines(
+  c(0.4 + (wave_x - 0.5) * 0.05)[c(1:80)],
+  c(0.248 + wave_y * 0.008)[c(1:80)],
+  #col = main_col,
+  col = "white",
+  lwd = 2, lty = 3
+)
+
+lines(
+  c(0.4 + (wave_x - 0.5) * 0.05)[c(81:100)],
+  c(0.248 + wave_y * 0.008)[c(81:100)],
+  #col = main_col,
+  col = "white",
+  lwd = 2
+)
+
+text(
+  0.45,
+  0.248,
+  #hex_x[2] * 4.5,
+  #hex_y[3] * 0.63,
+  expression(epsilon[it] %~% N(0, sigma^2 * R(rho))),
+  cex = 1,
+  family = "serif",
+  #col = main_col,
+  col = "white",
+  pos = 4
+)
+
+
+text(
+  0.5,
+  0.18,
+  "MEMWAS",
+  cex = 3, font = 2,
+  col = "white"
+)
+
+text(
+  0.5,
+  0.11,
+  "Since 2026",
+  cex = 1,
+  col = "white"
+)
+
+text(
+  0.5,
+  0.065,
+  "\u2014  \u2022  \u2022  \u2022  \u2014",
+  cex = 1.1,
+  col = "white"
+)
+
+# END MEMWAS logo -----
+
+export::graph2ppt(
+  file = paste0(getwd(),"/MEMWAS_logo_260707.pptx"),
+  append = TRUE,
+  width = 5,
+  height = 5)
+
+
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 2. Top MEMWAS banner -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+banner_x <- c(hex_x[3], hex_x[4], hex_x[5])
+banner_y <- c(hex_y[2], hex_y[1], hex_y[2])
+
+polygon(
+  banner_x,
+  banner_y,
+  col = main_col,
+  border = main_col
+)
+
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+# 3. Main title -----
+# --- # --- # --- # --- # --- # --- # --- # --- # --- # --- # ---
+
+text(
+  0.5,
+  0.8,
+  "MEMWAS",
+  cex = 3.0,
+  font = 2,
+  col = "white"
+)

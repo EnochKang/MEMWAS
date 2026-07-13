@@ -1,0 +1,24 @@
+{
+    "args": [
+        "-std=gnu++20",
+        "-IC:/PROGRA~1/R/R-46~1.0/include",
+        "-DNDEBUG",
+        "-fopenmp",
+        "-DEIGEN_DONT_VECTORIZE",
+        "-nostdinc",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/include/c++",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/include/c++/x86_64-w64-mingw32.static.posix",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/include/c++/backward",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/include",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/../../../../include",
+        "-IC:/rtools45/x86_64-w64-mingw32.static.posix/bin/../lib/gcc/x86_64-w64-mingw32.static.posix/14.3.0/include-fixed",
+        "-include",
+        "C:/Work/SMaRT/1. MnD/0. Stats/MEMWAS/00 Package on GitHub/MEMWAS/.Rproj.user/9FF94A22/compilation-database/mingw64/cpp-definitions.h"
+    ],
+    "pch": "",
+    "is_cpp": true,
+    "hash": "178390080017839008001783900800",
+    "compiler": "16001004037050314525",
+    "rversion": "4.6.0",
+    "dbversion": 4
+}

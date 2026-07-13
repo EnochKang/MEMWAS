@@ -1,0 +1,956 @@
+---
+title: "Introduction to MEMWAS"
+subtitle: |
+  <table style="border: none; border-collapse: collapse; margin-left: 0; margin-right: auto;">
+    <tr style="border: none;">
+      <td style="border: none; vertical-align: middle;">
+        <img src="MEMWAS_Logo.png" width="120" style="display: block;" />
+      </td>
+      <td style="border: none; vertical-align: middle; padding-left: 5px; text-align: left; line-height: 1.5;">
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">M</span>ixed<br>
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">E</span>ffects<br>
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">M</span>odels<br>
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">W</span>ith<br>
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">A</span>utocorrelation<br>
+        <span style="color: #00008B; font-size: 1em; font-weight: bold;">S</span>tructures
+      </td>
+    </tr>
+  </table>
+
+author: "[Enoch Kang](https://orcid.org/0000-0002-4903-942X)"
+date: "July 13, 2026"
+description: >
+  Mixed Effects Models with Autocorrelation Structures.
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+    keep_md: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to MEMWAS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE
+)
+
+library(MEMWAS)
+```
+
+
+<br>
+
+# Installation
+
+Install the package from a local source archive:
+
+```{r install-tarball, eval=FALSE}
+# From a local source package archive
+install.packages("MEMWAS_0.1.1.tar.gz", repos = NULL, type = "source")
+library(MEMWAS)
+```
+
+Or install from GitHub:
+
+```{r install-folder, eval=FALSE}
+remotes::install_github("EnochKang/MEMWAS")
+library(MEMWAS)
+```
+
+
+<br>
+
+# Purpose
+
+MEMWAS is designed for educational, healthcare, psychological, behavioral, and other longitudinal studies in which repeated observations are nested within subjects or other stable sampling units. Typical examples include students followed across semesters, patients followed across clinical visits, and participants completing repeated mental-health assessments. Observations from the same subject are usually dependent. Part of that dependence may arise from persistent subject-specific differences or heterogeneous trajectories, while an additional part may remain because measurements close in time are more strongly related than measurements farther apart.
+
+
+Besides, the MEMWAS package offers an integrated transparency advantage by embedding configurable assumption screening and structured diagnostic reporting within the model- analysis workflow. This design supports research integrity by making diagnostic choices, findings, limitations, and unavailable tests more visible and auditable.
+
+
+<br>
+
+# Why random effects and serial correlation are different?
+
+Random effects and residual or latent serial correlation can both induce within-subject dependence, but they represent different components of the model.
+
+A random intercept model with variance \(\tau_0^2\) induces
+
+\[
+\operatorname{Cov}(z_{ij}^\top b_i,z_{ik}^\top b_i)
+=
+\tau_0^2
+\]
+
+for all \(j\neq k\). This dependence does not decay with temporal separation. With a random intercept and random time slope,
+
+\[
+b_i
+=
+\begin{pmatrix}
+b_{0i}\\
+b_{1i}
+\end{pmatrix},
+\qquad
+D
+=
+\begin{pmatrix}
+\tau_0^2 & \tau_{01}\\
+\tau_{01} & \tau_1^2
+\end{pmatrix},
+\]
+
+the covariance induced by the random effects at times \(t_{ij}\) and \(t_{ik}\) is
+
+\[
+\operatorname{Cov}
+\left(
+b_{0i}+t_{ij}b_{1i},
+b_{0i}+t_{ik}b_{1i}
+\right)
+=
+\tau_0^2
++
+(t_{ij}+t_{ik})\tau_{01}
++
+t_{ij}t_{ik}\tau_1^2.
+\]
+
+By contrast, a discrete-time AR(1) residual process gives
+
+\[
+\operatorname{Cov}(\varepsilon_{ij},\varepsilon_{ik})
+=
+\sigma^2\rho^{|j-k|},
+\qquad
+|\rho|<1,
+\]
+
+so the magnitude of the covariance normally decreases with lag.
+
+Scientifically, random effects describe stable heterogeneity in levels or trajectories, whereas serial correlation describes the persistence of deviations remaining after the fixed and random effects have been modeled. For example, a random intercept can represent a patient's usual pain level, while an AR(1) term can represent short-term persistence of an unmeasured flare-up around that level.
+
+The components are conceptually distinct but may be difficult to identify separately. In short panels, an AR(1) process with \(\rho\) near one can resemble a random intercept; random slopes can resemble smooth serial dependence; and flexible residual structures can absorb variation otherwise attributed to random effects. Analysts should inspect boundary estimates, large standard errors, nearly singular Hessians, sensitivity to starting values, and sensitivity to alternative covariance specifications.
+
+Misspecifying within-subject dependence does not have one universal consequence. Under a correctly specified Gaussian mean model, appropriate exogeneity conditions, independent subjects, and suitable asymptotics, fixed-effect estimates may remain unbiased or consistent even when the covariance is misspecified. Nevertheless, efficiency, model-based standard errors, likelihood-based tests, variance-component estimates, prediction intervals, and nonlinear-term screening can be distorted. In non-Gaussian mixed models, covariance or latent-process misspecification can also affect the fixed-effect estimates because the likelihood is nonlinear.
+
+For Gaussian models, the covariance decomposition is
+
+\[
+\underbrace{Z_iDZ_i^\top}_{\text{dependence induced by random effects}}
++
+\underbrace{\sigma^2R_i(\theta)}_{\text{residual covariance}}.
+\]
+
+For non-Gaussian models, the same two sources of latent dependence may be present, but their observed-scale covariance is not given by this simple sum.
+
+
+<br>
+
+# What does the MEMWAS work on?
+MEMWAS fits longitudinal mixed-effects models for Gaussian, Bernoulli/grouped-binomial, Poisson, negative-binomial, Gamma, and exponential outcomes. Models may combine fixed effects, Gaussian random effects, offsets, fixed-effect penalties, and multiple independent named serial processes in one likelihood. Each serial process has a one-column design and its own AR(1), exponential/Ornstein-Uhlenbeck, AR(p), ARMA(1,1), compound-symmetry, Toeplitz, or unstructured covariance, permitting residual and predictor-modulated autocorrelation structures to be estimated simultaneously. Grouped-binomial totals, family links, conditional predictions, and serial-component contributions are retained consistently through fitting and prediction.
+
+
+## Statistical framework
+
+### Notation
+
+Let:
+
+- \(i=1,\ldots,m\) index subjects;
+- \(j=1,\ldots,n_i\) index observations within subject \(i\);
+- \(Y_{ij}\) denote the observed outcome;
+- \(x_{ij}\in\mathbb{R}^{p}\) denote the fixed-effect design vector;
+- \(z_{ij}\in\mathbb{R}^{q}\) denote the random-effect design vector;
+- \(\beta\in\mathbb{R}^{p}\) denote fixed-effect parameters;
+- \(b_i\in\mathbb{R}^{q}\) denote subject-specific random effects;
+- \(X_i\) and \(Z_i\) denote the corresponding subject-level design matrices; and
+- \(t_{ij}\) denote the observed measurement time or ordered visit index.
+
+Subjects are assumed mutually independent unless a higher-level clustering structure is explicitly modeled.
+
+### Gaussian outcomes
+
+For a Gaussian response with the identity link, MEMWAS uses the linear mixed-model representation
+
+\[
+Y_i = X_i\beta + Z_i b_i + \varepsilon_i,
+\]
+
+where
+
+\[
+b_i \sim N_q(0,D),
+\qquad
+\varepsilon_i \sim N_{n_i}\!\left(0,\Sigma_{\varepsilon i}\right),
+\qquad
+b_i \perp\!\!\!\perp \varepsilon_i.
+\]
+
+The residual covariance is parameterized as
+
+\[
+\Sigma_{\varepsilon i}
+=
+\sigma^2 R_i(\theta),
+\]
+
+where \(\sigma^2>0\) is a residual variance and \(R_i(\theta)\) is a valid \(n_i\times n_i\) correlation matrix. Consequently,
+
+\[
+E(Y_i\mid b_i)=X_i\beta+Z_i b_i,
+\qquad
+E(Y_i)=X_i\beta,
+\]
+
+and the exact marginal covariance is
+
+\[
+V_i
+=
+\operatorname{Var}(Y_i)
+=
+Z_iDZ_i^\top+\sigma^2R_i(\theta).
+\]
+
+This additive covariance decomposition is exact only because the model is Gaussian and linear and because \(b_i\) is independent of \(\varepsilon_i\).
+
+### Non-Gaussian outcomes
+
+For a non-Gaussian outcome, let
+
+\[
+\mu_{ij}
+=
+E(Y_{ij}\mid b_i,u_i),
+\]
+
+where \(u_i=(u_{i1},\ldots,u_{in_i})^\top\) is a serially correlated latent Gaussian effect. A general latent-process generalized mixed model is
+
+\[
+Y_{ij}\mid b_i,u_i
+\sim
+\mathcal{F}(\mu_{ij},\phi),
+\]
+
+\[
+g(\mu_{ij})
+=
+\eta_{ij}
+=
+x_{ij}^\top\beta
++
+z_{ij}^\top b_i
++
+u_{ij},
+\]
+
+with
+
+\[
+b_i\sim N_q(0,D),
+\qquad
+u_i\sim N_{n_i}\!\left(0,\Sigma_{u i}\right),
+\qquad
+b_i\perp\!\!\!\perp u_i,
+\]
+
+and
+
+\[
+\Sigma_{u i}
+=
+\sigma_u^2R_i(\theta).
+\]
+
+Here \(u_i\) is a latent serial process on the link scale. It is not an ordinary additive residual on the observed outcome scale. When `autocor = "NONE"`, set \(u_i\equiv 0\); conditional variation is then governed by the selected response family and any separately modeled dispersion parameter.
+
+The fixed-effect coefficients are **conditional or subject-specific parameters**. In general,
+
+\[
+E\!\left(Y_{ij}\mid x_{ij},z_{ij}\right)
+=
+E_{b_i,u_i}
+\left[
+g^{-1}
+\left(
+x_{ij}^\top\beta+z_{ij}^\top b_i+u_{ij}
+\right)
+\right],
+\]
+
+which is not equal to
+
+\[
+g^{-1}(x_{ij}^\top\beta)
+\]
+
+for nonlinear link functions. Therefore, \(\beta\) should not be described as a population-averaged response-scale effect in a logistic, count, gamma, or exponential mixed model.
+
+The observed-scale marginal covariance of a non-Gaussian outcome is governed by the law of total covariance:
+
+\[
+\operatorname{Cov}(Y_i)
+=
+E\!\left\{
+\operatorname{Cov}(Y_i\mid b_i,u_i)
+\right\}
++
+\operatorname{Cov}
+\left\{
+E(Y_i\mid b_i,u_i)
+\right\}.
+\]
+
+It generally does **not** simplify to
+
+\[
+Z_iDZ_i^\top+\sigma_u^2R_i(\theta).
+\]
+
+That expression describes an additive Gaussian covariance decomposition, not the response-scale covariance of a general GLMM.
+
+
+## Family-specific conditional models
+### Overview on Family-specific models
+
+The default link and conditional variance depend on the selected family.
+
+| Family | Conditional model | Default link and interpretation |
+|---|---|---|
+| Gaussian | \(Y_i\mid b_i\sim N_{n_i}(X_i\beta+Z_ib_i,\sigma^2R_i)\) | Identity link. \(\beta_k\) is a conditional mean difference in outcome units. |
+| Binomial | \(Y_{ij}\mid b_i,u_i\sim\operatorname{Binomial}(N_{ij},p_{ij})\) | \(\operatorname{logit}(p_{ij})=\eta_{ij}\). For a one-unit predictor increase, \(\exp(\beta_k)\) is a conditional odds ratio, holding the latent effects fixed. |
+| Poisson | \(Y_{ij}\mid b_i,u_i\sim\operatorname{Poisson}(\mu_{ij})\) | \(\log(\mu_{ij})=\eta_{ij}\). \(\exp(\beta_k)\) is a conditional mean or rate ratio. |
+| Negative binomial | \(Y_{ij}\mid b_i,u_i\sim\operatorname{NB2}(\mu_{ij},\kappa)\) | \(\log(\mu_{ij})=\eta_{ij}\), with \(\operatorname{Var}(Y_{ij}\mid b_i,u_i)=\mu_{ij}+\mu_{ij}^2/\kappa\), \(\kappa>0\). |
+| Gamma | \(Y_{ij}\mid b_i,u_i\sim\operatorname{Gamma}(\text{shape}=\kappa,\text{scale}=\mu_{ij}/\kappa)\) | Log link. Then \(E(Y_{ij}\mid b_i,u_i)=\mu_{ij}\) and \(\operatorname{Var}(Y_{ij}\mid b_i,u_i)=\mu_{ij}^2/\kappa\). |
+| Exponential | \(Y_{ij}\mid b_i,u_i\sim\operatorname{Exponential}(\text{rate}=1/\mu_{ij})\) | Log link. This is the gamma model with shape \(1\), so \(E(Y_{ij}\mid b_i,u_i)=\mu_{ij}\) and \(\operatorname{Var}(Y_{ij}\mid b_i,u_i)=\mu_{ij}^2\). |
+
+The exact parameter names printed by MEMWAS should be interpreted according to the parameterization reported in the fitted object. In particular, negative-binomial *size*, *shape*, and *dispersion* are not interchangeable unless the transformation is stated.
+
+
+### Choosing families and interpreting coefficients
+
+For Gaussian identity-link models, fixed effects are conditional mean differences in the original outcome units. For nonlinear links, the coefficients are conditional link-scale effects:
+
+\[
+\eta_{ij}
+=
+x_{ij}^\top\beta+z_{ij}^\top b_i+u_{ij}.
+\]
+
+For a binary logit model,
+
+\[
+\exp(\beta_k)
+\]
+
+is a subject-specific conditional odds ratio. For Poisson, negative-binomial, gamma, and exponential models with a log link,
+
+\[
+\exp(\beta_k)
+\]
+
+is a conditional multiplicative change in the mean for a one-unit increase in predictor \(k\), holding other predictors and latent effects fixed.
+
+Poisson models impose conditional equidispersion before accounting for latent heterogeneity:
+
+\[
+\operatorname{Var}(Y_{ij}\mid b_i,u_i)=\mu_{ij}.
+\]
+
+Negative-binomial models add an explicit mean-dependent dispersion component and are often preferable when count variation remains larger than the Poisson model permits. Gamma and exponential models require strictly positive outcomes. A gamma model is more flexible because it estimates or fixes a shape parameter, whereas the exponential family fixes the shape at one.
+
+For time-varying predictors, a single coefficient may combine between-subject and within-subject associations. To separate them, decompose a predictor as
+
+\[
+x_{ij}
+=
+\bar{x}_i
++
+(x_{ij}-\bar{x}_i),
+\]
+
+and include both \(\bar{x}_i\) and \(x_{ij}-\bar{x}_i\) when the scientific question distinguishes stable between-subject differences from within-subject change.
+
+
+## Likelihood and approximation methods
+### Gaussian models
+
+For Gaussian outcomes, the subject-level marginal distribution is
+
+\[
+Y_i
+\sim
+N_{n_i}
+\left(
+X_i\beta,
+V_i
+\right),
+\qquad
+V_i=Z_iDZ_i^\top+\sigma^2R_i(\theta).
+\]
+
+MEMWAS can therefore evaluate the Gaussian marginal likelihood directly, subject to numerical optimization of covariance parameters. Maximum likelihood (ML) and restricted maximum likelihood (REML) have different uses:
+
+- use ML when comparing models with different fixed-effect terms;
+- REML is often preferred for estimating covariance components after the fixed-effect structure has been chosen;
+- REML likelihoods from models with different fixed-effect design matrices are not directly comparable.
+
+
+### Non-Gaussian models
+
+For a non-Gaussian model, let \(a_i\) collect the Gaussian latent effects integrated in the fitted formulation, and let \(\psi\) collect fixed effects, covariance parameters, and family-specific dispersion parameters. The subject contribution has the generic form
+
+\[
+L_i(\psi)
+=
+\int
+p(Y_i\mid a_i;\psi)
+p(a_i;\psi)
+\,da_i.
+\]
+
+The marginal log-likelihood is
+
+\[
+\ell(\psi)
+=
+\sum_{i=1}^{m}
+\log L_i(\psi),
+\]
+
+and the integral usually has no closed form.
+
+
+#### Laplace approximation
+
+Let
+
+\[
+h_i(a_i;\psi)
+=
+\log p(Y_i\mid a_i;\psi)
++
+\log p(a_i;\psi),
+\]
+
+and let \(\widehat a_i\) maximize \(h_i\). If
+
+\[
+H_i
+=
+-
+\left.
+\frac{\partial^2 h_i(a_i;\psi)}
+{\partial a_i\partial a_i^\top}
+\right|_{a_i=\widehat a_i},
+\]
+
+then the first-order Laplace approximation is
+
+\[
+\log L_i(\psi)
+\approx
+h_i(\widehat a_i;\psi)
++
+\frac{d_i}{2}\log(2\pi)
+-
+\frac{1}{2}\log|H_i|,
+\]
+
+where \(d_i=\dim(a_i)\). Laplace approximation is often an effective default, but accuracy can deteriorate with sparse binary data, small cluster sizes, weak information about variance parameters, or strongly asymmetric conditional latent-effect distributions.
+
+
+#### Variational inference
+
+Variational inference selects a tractable distribution \(q(a_i)\) and maximizes an evidence lower bound,
+
+\[
+\mathcal{L}(q,\psi)
+=
+E_q
+\left[
+\log p(Y_i,a_i;\psi)
+-
+\log q(a_i)
+\right].
+\]
+
+It can provide fast and stable initial values, but its posterior variance estimates may be too small when the variational family is restrictive. When used only for initialization, final inference should be based on the selected final approximation.
+
+
+#### Adaptive Gauss--Hermite quadrature
+
+Adaptive Gauss--Hermite quadrature centers and scales quadrature nodes around the conditional mode. Its computational cost grows rapidly with latent dimension. With \(K\) nodes in each dimension, a direct tensor-product rule can require \(K^{d_i}\) evaluations per subject. It is therefore most useful for small latent dimensions and as a sensitivity analysis against Laplace approximation.
+
+
+#### Saddlepoint and skew-corrected approximations
+
+Saddlepoint and skew-corrected Laplace methods attempt to improve tail or asymmetry behavior beyond a first-order Laplace approximation. They are not automatically superior in every dataset. Convergence, Hessian status, coefficient stability, standard errors, and sensitivity to alternative approximations should be inspected.
+
+
+#### Penalized quasi-likelihood
+
+Penalized quasi-likelihood (PQL) is retained for compatibility with older workflows. It is not a full marginal likelihood and can be biased, especially for binary outcomes with small cluster sizes, rare events, or large random-effect variances. Likelihood-based information criteria from PQL should not be treated as directly equivalent to those from full or approximately integrated likelihoods.
+
+
+<br>
+
+# How does the MEMWAS work?
+## Data requirements and identifiability
+
+A fitted covariance structure cannot compensate for a poorly defined time scale, an incorrect mean model, or insufficient information. Before fitting:
+
+1. verify that IDs are stable and that observations are correctly ordered within ID;
+2. inspect duplicate or nearly duplicate time points;
+3. verify that the proposed correlation matrix is positive definite for every subject;
+4. use enough independent subjects to estimate fixed effects and cluster-robust uncertainty;
+5. use enough repeated observations to identify the proposed serial structure;
+6. avoid an unstructured residual matrix when visit patterns are too sparse or inconsistent;
+7. center or scale time when random slopes are included;
+8. distinguish within-subject from between-subject effects when required;
+9. inspect whether random effects and serial parameters are competing to explain the same dependence; and
+10. consider whether missingness is plausibly ignorable under the fitted likelihood. Standard likelihood inference is generally justified under missing at random conditional on the modeled variables, not under unrestricted missing-not-at-random mechanisms.
+
+A fitted correlation parameter near a boundary, such as \(\widehat{\rho}\approx 1\), is not automatically evidence of strong temporal persistence. It can also indicate inadequate detrending, an omitted random effect, weak identification, or an overly flexible model.
+
+## Workflows
+1. defining models with fixed effects, random effects, and within-subject autocorrelation structure(s);
+2. fitting Gaussian, binomial, Poisson, negative-binomial, gamma, or exponential outcomes;
+3. checking assumptions of mixed effects model;
+4. producing model summaries and predictions; and
+5. returning best linear unbiased predictors (BLUPs) for Gaussian models and empirical Bayes or conditional-mode estimates of random effects for non-Gaussian models.
+
+The term *residual autocorrelation* has an exact observed-scale meaning for Gaussian models. For non-Gaussian models, the same phrase is used in this vignette only as shorthand for a serially correlated latent Gaussian effect on the link scale. It must not be interpreted as an additive Gaussian residual on a binary, count, or positive-response scale.
+
+## Core functions
+
+| Function | Main role | Typical output |
+|---|---|---|
+| `set_MEMWAS()` | Validate an analysis plan, store model settings, and optionally screen nonlinear terms | `MEMWAS` settings object |
+| `fit_MEMWAS()` | Fit a MEMWAS model from a settings object or direct arguments | `MEMWAS_fit` object |
+| `summary()` | Summarize a settings object or fitted model | S3 summary object |
+| `predict()` | Generate conditional or marginal predictions, when supported | Numeric vector or data frame |
+| `diagnose_approximation()` | Summarize numerical diagnostics for a non-Gaussian approximation | Diagnostic object or table |
+| `compare_approximations()` | Refit a common model under several approximation strategies | Comparison object or table |
+
+
+## Key parameters
+
+`set_MEMWAS()` is the configuration layer. It validates data and modeling choices, optionally screens numeric predictors for nonlinear terms, stores the analysis plan, and returns an object that can be supplied to `fit_MEMWAS()`.
+
+```{r set-interface, eval=FALSE}
+settings <- set_MEMWAS(
+  formula,
+  family = "gaussian",
+  data,
+  id,
+  time,
+  random = ~ 1,
+  autocor = "AR(1)",
+  control = list(),
+  method = "ML",
+  random_cov = c("diagonal", "unstructured"),
+  approximation = "laplace",
+  init_approximation = "variational_inference",
+  se_method = "hessian",
+  engine = c("R", "cpp"),
+  verbose = TRUE,
+  ...
+)
+```
+
+| Parameter | Accepted arguments | Definition and guidance |
+|---|---|---|
+| `formula` | R formula, for example `reading_score ~ study_minutes + attendance_rate` | Fixed-effect component of the conditional mean model. The left side is the response; the right side defines \(X_i\beta\). Interactions, factors, and transformations may be used through standard R formula syntax. |
+| `family` | `"gaussian"`, `"binomial"`, `"poisson"`, `"negative_binomial"`, `"gamma"`, or `"exponential"`; documented aliases may also be accepted | Conditional response distribution and default link. Confirm that the outcome support, mean--variance relationship, and link are scientifically appropriate. |
+| `data` | `data.frame` | Long-format data. Each row represents one subject-time observation and contains the response, predictors, subject identifier, time variable, and random-effect variables. |
+| `id` | Single character string naming a column in `data` | Cluster identifier. Observations with the same ID share random effects and a within-subject correlation structure. Missing IDs are not allowed. |
+| `time` | Single character string naming a column in `data` | Variable used to order observations and define lags or elapsed-time distances. Duplicate times within a subject require an explicit scientific and computational interpretation. |
+| `random` | Formula or character string, such as `~ 1` or `~ 1 + week` | Random-effect design \(Z_i\). `~ 1` specifies a random intercept; `~ 1 + week` specifies a random intercept and time slope. Centering or scaling time often improves interpretation and numerical stability. |
+| `autocor` | `"NONE"`, `"AR(1)"`, `"AR(p)"`, `"ARMA(1,1)"`, `"CS"`, `"TOEP"`, or `"UN"` | Within-subject correlation structure. For Gaussian models it applies to residuals; for non-Gaussian models it refers to the latent serial component implemented by MEMWAS. |
+| `control` | Named list | Advanced settings for optimization, correlation construction, nonlinear screening, approximation, and uncertainty. Examples include `continuous_time`, `toep_lags`, `max_unstructured_dim`, `spline_grid`, `min_unique_nonlinear`, optimizer tolerances, regularization controls, `negative_binomial_theta`, `gamma_shape`, `estimate_dispersion`, `estimate_nb_theta`, `estimate_gamma_shape`, `mode_maxit`, `mode_tol`, `aghq_nodes`, `aghq_max_dim`, `aghq_max_nodes`, `bootstrap_B`, `profile_ci`, `profile_grid`, and `profile_alpha`. |
+| `method` | `"ML"` or `"REML"` | Gaussian likelihood method. ML is required for comparing fixed-effect structures. REML is intended for Gaussian covariance estimation with a fixed mean structure. Non-Gaussian models use approximate marginal ML rather than REML. |
+| `random_cov` | `"diagonal"` or `"unstructured"` | Parameterization of \(D\). A diagonal matrix assumes zero random-effect correlations. An unstructured matrix estimates variances and correlations but requires more information and can be weakly identified. |
+| `approximation` | `"laplace"`, `"adaptive_gauss_hermite_quadrature"`, `"adaptive_gaussian_quadrature"`, `"saddlepoint"`, `"skew_corrected_laplace"`, `"variational_inference"`, or legacy `"pql"` | Final approximation for non-Gaussian marginal inference. Gaussian models use the Gaussian marginal likelihood regardless of this setting. Quadrature is practical only when the integrated latent dimension is small. |
+| `init_approximation` | `"variational_inference"` or another supported approximation | Method used to obtain starting values for a non-Gaussian final fit. Unless it is also selected as `approximation`, it should not determine the final reported likelihood or standard errors. |
+| `se_method` | `"hessian"`, `"cluster_sandwich"`, `"parametric_bootstrap"`, `"profile"`, or a character vector | Uncertainty method. Robust and resampling methods have their own sample-size and computational requirements. |
+| `engine` | `"R"` or `"cpp"` | Numerical backend. `"R"` uses base-R implementations. `"cpp"` uses registered C++ kernels where supported; model validation, orchestration, and unsupported operations may remain in R. |
+| `verbose` | `TRUE` or `FALSE` | Whether setup and fitting progress messages are printed. |
+| `...` | Additional named values | Extra metadata retained in the settings object, such as a study label, protocol version, or analyst note. |
+
+
+## Approximation diagnostics and uncertainty
+
+After fitting a non-Gaussian model, `diagnose_approximation()` should be used to inspect, when available:
+
+- optimizer convergence and termination messages;
+- gradient size at the reported optimum;
+- positive definiteness and conditioning of the Hessian;
+- boundary or near-boundary variance and correlation estimates;
+- fallback from a requested quadrature rule;
+- the approximation actually used;
+- the source of standard errors; and
+- sensitivity to starting values.
+
+`compare_approximations()` can be used to assess whether coefficients, standard errors, variance parameters, predictions, or nonlinear screening decisions materially change across approximation strategies. Approximate likelihood values should be compared cautiously when different approximations have different normalizing constants or numerical tolerances.
+
+The principal uncertainty options have different interpretations:
+
+| `se_method` | Interpretation and caution |
+|---|---|
+| `"hessian"` | Model-based standard errors from the inverse observed Hessian. They rely on the fitted likelihood approximation and correct model specification. |
+| `"cluster_sandwich"` | Subject-clustered robust standard errors based on cluster scores. They require a sufficient number of independent subjects and do not repair a misspecified conditional mean. |
+| `"parametric_bootstrap"` | Simulates data from the fitted model and refits it. It can represent nonlinear and boundary behavior better, but it is computationally expensive and remains conditional on the fitted model being a reasonable data-generating mechanism. |
+| `"profile"` | Profile-likelihood intervals for selected parameters. They can be more reliable for asymmetric or boundary-prone variance parameters, but require repeated optimization. |
+
+
+## Within-subject correlation structures
+### Overview on autocorrelation structures in MEMWAS
+The `autocor` argument selects \(R_i(\theta)\). Although the package uses the term *autocorrelation*, compound-symmetry and unstructured matrices are more generally within-subject correlation structures.
+
+Assume first that observations are equally spaced and ordered by \(j\).
+
+| `autocor` value | Mathematical definition | Important conditions and interpretation |
+|---|---|---|
+| `"NONE"` | \(R_i=I_{n_i}\) | No remaining serial correlation after the modeled effects. |
+| `"AR(1)"` | \([R_i]_{jk}=\rho^{|j-k|}\) | Requires \(|\rho|<1\). Correlation decays geometrically with discrete lag. |
+| `"AR(p)"` | \(u_t=\sum_{r=1}^{p}\phi_r u_{t-r}+a_t\) | The roots of \(1-\phi_1z-\cdots-\phi_pz^p=0\) must lie outside the unit circle. \(R_i\) is obtained from the stationary autocorrelation function. |
+| `"ARMA(1,1)"` | \(u_t=\phi u_{t-1}+a_t+\vartheta a_{t-1}\) | Stationarity requires \(|\phi|<1\). A conventional identifiable parameterization also imposes invertibility, commonly \(|\vartheta|<1\). |
+| `"CS"` | \([R_i]_{jk}=1\) if \(j=k\), and \(\rho\) otherwise | Positive definiteness requires \(-1/(n_i-1)<\rho<1\). With unequal cluster sizes, constraints must be valid for the largest relevant cluster. |
+| `"TOEP"` | \([R_i]_{jk}=r_{|j-k|}\), with \(r_0=1\) | Each lag has its own parameter. The resulting Toeplitz matrix must be positive definite. |
+| `"UN"` | Every off-diagonal correlation is estimated separately | Requires a symmetric positive-definite matrix and many parameters: \(n_i(n_i-1)/2\) correlations. It is most defensible for short, commonly scheduled, well-supported panels. |
+
+`"AR(1)"` is often a reasonable starting model when measurements are equally spaced and nearby deviations are expected to be more similar than distant deviations. `"TOEP"` and `"UN"` are more flexible but can be unstable in sparse or highly unbalanced panels. `"CS"` should not be interpreted as temporal decay because it assigns the same residual correlation to every pair of occasions.
+
+
+### Unequally spaced measurements
+
+For irregular times, a discrete structure based only on \(|j-k|\) treats two successive visits as equally separated even when their elapsed times differ. A continuous-time exponential correlation is often more appropriate:
+
+\[
+[R_i(\phi)]_{jk}
+=
+\exp
+\left\{
+-\phi |t_{ij}-t_{ik}|
+\right\},
+\qquad
+\phi>0.
+\]
+
+Equivalently, for a chosen time unit and \(0<\rho<1\),
+
+\[
+[R_i(\rho)]_{jk}
+=
+\rho^{|t_{ij}-t_{ik}|}.
+\]
+
+The time variable must therefore have a meaningful unit. A one-unit difference could mean one day, one week, or one semester, and the correlation parameter changes interpretation accordingly. Negative \(\rho\) is not generally meaningful in the expression \(\rho^{|t_{ij}-t_{ik}|}\) when time gaps are noninteger.
+
+
+## Model comparison and nonlinear screening
+
+Likelihood-based comparisons are meaningful only when the models are fitted to the same response observations and use compatible likelihood definitions.
+
+For nested Gaussian models that differ in fixed effects, use ML rather than REML. For models with the same fixed-effect design but different covariance structures, REML-based comparisons may be informative, provided the likelihood and parameter constraints are handled consistently. For non-Gaussian models, comparisons should use the same marginal-likelihood approximation, numerical tolerances, and integration settings whenever possible.
+
+A likelihood-ratio statistic for regular nested models is
+
+\[
+\Lambda
+=
+2
+\left\{
+\ell(\widehat{\psi}_{\mathrm{full}})
+-
+\ell(\widehat{\psi}_{\mathrm{reduced}})
+\right\}.
+\]
+
+The usual chi-square reference distribution may fail when the null hypothesis places a variance component or correlation parameter on the boundary of the parameter space. Parametric bootstrap calibration is preferable when boundary behavior is consequential.
+
+Information criteria are commonly written as
+
+\[
+\operatorname{AIC}
+=
+-2\ell(\widehat{\psi})+2k,
+\]
+
+and
+
+\[
+\operatorname{BIC}
+=
+-2\ell(\widehat{\psi})+k\log(N_{\mathrm{eff}}),
+\]
+
+where \(k\) is the number of estimated parameters. In clustered data, the appropriate effective sample size in BIC is context dependent; using the number of rows without explanation can overstate the amount of independent information.
+
+Any automated nonlinear screening step is a model-selection procedure. Standard errors and \(p\) values computed after selecting terms on the same data are conditional on the selected model and generally do not account for selection uncertainty. Screening should preserve subject-level clustering in resampling or cross-validation, avoid information leakage across observations from the same subject, and be evaluated by sensitivity analyses or independent validation when possible.
+
+
+## Predictions and random-effect estimates
+
+For a Gaussian model, a conditional fitted value is
+
+\[
+\widehat{Y}_{ij}^{\,\mathrm{cond}}
+=
+x_{ij}^\top\widehat{\beta}
++
+z_{ij}^\top\widehat{b}_i.
+\]
+
+The estimate \(\widehat b_i\) is a BLUP under the fitted Gaussian model.
+
+For a non-Gaussian model, a conditional prediction may be written as
+
+\[
+\widehat{\mu}_{ij}^{\,\mathrm{cond}}
+=
+g^{-1}
+\left(
+x_{ij}^\top\widehat{\beta}
++
+z_{ij}^\top\widehat{b}_i
++
+\widehat{u}_{ij}
+\right),
+\]
+
+where the latent effects are usually empirical Bayes estimates or conditional modes. A marginal prediction instead integrates over the latent effects:
+
+\[
+\widehat{\mu}_{ij}^{\,\mathrm{marg}}
+=
+E_{\widehat b_i,\widehat u_i}
+\left[
+g^{-1}
+\left(
+x_{ij}^\top\widehat{\beta}
++
+z_{ij}^\top b_i
++
+u_{ij}
+\right)
+\right].
+\]
+
+Conditional and marginal predictions are generally different under nonlinear links. Any call to `predict()` should therefore state the prediction scale, whether random or latent effects are included, and how predictions for new subjects are handled.
+
+
+<br>
+
+# Examples
+## Minimal educational example
+
+The following base-R simulation creates Gaussian repeated outcomes with a random intercept and AR(1) residuals.
+
+```{r education-example, eval=FALSE}
+set.seed(2026)
+
+m <- 80L
+n_time <- 4L
+rho <- 0.45
+sigma_eps <- 4
+sigma_b <- 5
+
+student_dat <- data.frame(
+  student_id = rep(seq_len(m), each = n_time),
+  semester = rep(seq_len(n_time), times = m)
+)
+
+student_dat$study_minutes <- rnorm(m * n_time, mean = 90, sd = 25)
+student_dat$attendance_rate <- runif(m * n_time, min = 0.70, max = 1.00)
+
+b0 <- rnorm(m, mean = 0, sd = sigma_b)
+
+ar1_residual <- function(n, rho, sigma) {
+  e <- numeric(n)
+  e[1L] <- rnorm(1L, sd = sigma)
+  if (n > 1L) {
+    innovation_sd <- sigma * sqrt(1 - rho^2)
+    for (tt in 2L:n) {
+      e[tt] <- rho * e[tt - 1L] + rnorm(1L, sd = innovation_sd)
+    }
+  }
+  e
+}
+
+eps <- unlist(
+  lapply(seq_len(m), function(i) {
+    ar1_residual(n_time, rho = rho, sigma = sigma_eps)
+  }),
+  use.names = FALSE
+)
+
+student_dat$reading_score <-
+  55 +
+  0.08 * student_dat$study_minutes +
+  18 * student_dat$attendance_rate +
+  b0[student_dat$student_id] +
+  eps
+
+settings <- set_MEMWAS(
+  formula = reading_score ~ study_minutes + attendance_rate,
+  family = "gaussian",
+  data = student_dat,
+  id = "student_id",
+  time = "semester",
+  random = ~ 1,
+  autocor = "AR(1)",
+  method = "REML"
+)
+
+fit <- fit_MEMWAS(settings)
+summary(fit)
+```
+
+The random intercept represents persistent differences in students' expected reading scores. The AR(1) residual structure represents short-term persistence around those student-specific expected levels.
+
+## Minimal healthcare example
+
+The next example uses centered follow-up time so that the random intercept refers to the expected symptom level at the average visit time.
+
+```{r healthcare-example, eval=FALSE}
+set.seed(2026)
+
+m <- 120L
+visit_times <- seq(0, 20, by = 4)
+n_time <- length(visit_times)
+
+clinic_dat <- data.frame(
+  patient_id = rep(seq_len(m), each = n_time),
+  visit_week = rep(visit_times, times = m)
+)
+
+clinic_dat$visit_week_c <-
+  clinic_dat$visit_week - mean(visit_times)
+
+clinic_dat$therapy_sessions <- rpois(m * n_time, lambda = 2)
+clinic_dat$sleep_hours <- rnorm(m * n_time, mean = 6.5, sd = 1.1)
+clinic_dat$depression_score <- rnorm(m * n_time, mean = 14, sd = 5)
+
+settings_clinic <- set_MEMWAS(
+  formula = depression_score ~ visit_week_c +
+    therapy_sessions + sleep_hours,
+  family = "gaussian",
+  data = clinic_dat,
+  id = "patient_id",
+  time = "visit_week",
+  random = ~ 1 + visit_week_c,
+  random_cov = "unstructured",
+  autocor = "AR(1)",
+  control = list(continuous_time = TRUE),
+  method = "REML"
+)
+
+fit_clinic <- fit_MEMWAS(settings_clinic)
+summary(fit_clinic)
+```
+
+The random intercept and random time slope represent persistent patient-level differences in expected symptom trajectories. The continuous-time AR(1) structure represents serial dependence remaining around those trajectories as a function of elapsed weeks.
+
+## Non-Gaussian example and approximation check
+
+```{r nongaussian-example, eval=FALSE}
+set.seed(2026)
+
+clinic_count_dat <- clinic_dat
+patient_count_effect <- rnorm(m, mean = 0, sd = 0.45)
+
+eta_count <-
+  -0.4 -
+  0.025 * clinic_count_dat$visit_week_c +
+  0.10 * clinic_count_dat$therapy_sessions -
+  0.06 * clinic_count_dat$sleep_hours +
+  patient_count_effect[clinic_count_dat$patient_id]
+
+mu_count <- exp(eta_count)
+
+clinic_count_dat$emergency_visits <- rnbinom(
+  n = nrow(clinic_count_dat),
+  mu = mu_count,
+  size = 2.5
+)
+
+settings_count <- set_MEMWAS(
+  formula = emergency_visits ~ visit_week_c +
+    therapy_sessions + sleep_hours,
+  family = "negative_binomial",
+  data = clinic_count_dat,
+  id = "patient_id",
+  time = "visit_week",
+  random = ~ 1,
+  autocor = "AR(1)",
+  approximation = "laplace",
+  init_approximation = "variational_inference",
+  se_method = c("hessian", "cluster_sandwich")
+)
+
+fit_count <- fit_MEMWAS(settings_count)
+
+summary(fit_count)
+diagnose_approximation(fit_count)
+
+approx_comparison <- compare_approximations(
+  fit_count,
+  approximations = c(
+    "laplace",
+    "adaptive_gauss_hermite_quadrature",
+    "variational_inference"
+  )
+)
+
+summary(approx_comparison)
+```
+
+For this log-link model, exponentiated fixed effects are conditional mean ratios, not population-averaged rate ratios. Agreement across approximation methods supports numerical robustness but does not prove that the family, mean structure, random-effects distribution, or serial structure is correct.
+
+
+<br>
+
+# Reporting recommendations
+
+A reproducible MEMWAS analysis should report:
+
+- the response family and link;
+- the fixed-effect formula and coding of categorical variables;
+- the random-effect design and covariance parameterization;
+- the time variable and its unit;
+- the within-subject correlation structure and whether it uses discrete or continuous time;
+- ML or REML for Gaussian models;
+- the non-Gaussian approximation and initialization method;
+- the standard-error or interval method;
+- convergence, Hessian, and boundary diagnostics;
+- the scale and conditioning used for predictions;
+- sensitivity analyses across plausible covariance or approximation choices; and
+- the number of subjects, repeated observations per subject, and missing-data pattern.
+
+
+<br>
+
+# References
+
+Breslow, N. E., & Clayton, D. G. (1993). Approximate inference in generalized linear mixed models. *Journal of the American Statistical Association, 88*(421), 9--25.
+
+Laird, N. M., & Ware, J. H. (1982). Random-effects models for longitudinal data. *Biometrics, 38*(4), 963--974.
+
+Littell, R. C., Pendergast, J., & Natarajan, R. (2000). Modelling covariance structure in the analysis of repeated measures data. *Statistics in Medicine, 19*(13), 1793--1819.
+
+Liu, Q., & Pierce, D. A. (1994). A note on Gauss--Hermite quadrature. *Biometrika, 81*(3), 624--629.
+
+Ormerod, J. T., & Wand, M. P. (2010). Explaining variational approximations. *The American Statistician, 64*(2), 140--153.
+
+Tierney, L., & Kadane, J. B. (1986). Accurate approximations for posterior moments and marginal densities. *Journal of the American Statistical Association, 81*(393), 82--86.
+
+Zeger, S. L., Liang, K.-Y., & Albert, P. S. (1988). Models for longitudinal data: A generalized estimating equation approach. *Biometrics, 44*(4), 1049--1060.

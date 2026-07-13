@@ -1,0 +1,221 @@
+# AMEE demonstration
+
+## 1. Installation -----
+remotes::install_github("EnochKang/MEMWAS")
+
+## 2. Preparation -----
+### 2.1. Load library -----
+library("MEMWAS")
+
+### 2.2. Set simulation parameters -----
+n_vars <- 10
+rho <- 0.3
+cor_matrix <- diag(1 - rho, n_vars) + matrix(rho, n_vars, n_vars)
+times <- 3
+beta <- rep(5, n_vars)
+family <- "gaussian"
+autocor <- "CS" # CS | UN | AR(1)
+
+### 2.3. Simulate training data -----
+set.seed(20260824)
+train <- MEMWAS:::.simulate_panel_data(
+  n_id = 200,
+  n_time = times,
+  intercept = 3,
+  beta = beta,
+  cor_matrix = cor_matrix,
+  autocor = autocor,
+  autocor_param = list(rho = 0.3),
+  sigma_eps = 1,
+  exact_predictor_cor = TRUE,
+  family = family,
+  return_latent = FALSE
+)
+
+train[, c(1, 2)] <- lapply(train[, c(1, 2)], as.numeric)
+train[, c(3:13)] <- lapply(
+  train[, c(3:13)], 
+  function(x){
+    x <- round(x + abs(min(x)), 0)
+  })
+
+colnames(train)[c(4:13)] <- paste0("lag_", colnames(train)[c(4:13)])
+
+train <- MEMWAS:::.lagged_data(
+  train,
+  subject_id = "id",
+  time_var = "time",
+  response_var = "y",
+  predictor_vars = paste0("X", c(1:10)),
+  remove_NA = TRUE
+)
+
+
+### 2.4. Simulate testing data -----
+test <- MEMWAS:::.simulate_panel_data(
+  n_id = 100,
+  n_time = times,
+  intercept = 3,
+  beta = beta,
+  cor_matrix = cor_matrix,
+  autocor = autocor,
+  autocor_param = list(rho = 0.3),
+  sigma_eps = 1,
+  exact_predictor_cor = TRUE,
+  family = family,
+  return_latent = FALSE
+)
+
+test[, c(1, 2)] <- lapply(test[, c(1, 2)], as.numeric)
+test[, c(3:13)] <- lapply(
+  test[, c(3:13)], 
+  function(x){
+    x <- round(x + abs(min(x)), 0)
+  })
+
+colnames(test)[c(4:13)] <- paste0("lag_", colnames(test)[c(4:13)])
+
+test <- MEMWAS:::.lagged_data(
+  test,
+  subject_id = "id",
+  time_var = "time",
+  response_var = "y",
+  predictor_vars = paste0("X", c(1:10)),
+  remove_NA = TRUE
+)
+
+train
+
+## 3. Execute MEMWAS -----
+### 3.1. Set MEMWAS -----
+setModel <- set_MEMWAS(
+  as.formula(
+    "y ~ lag_X1 + lag_X2 + lag_X3 + lag_X4 + lag_X5 +
+    lag_X6 + lag_X7 + lag_X8 + lag_X9 + lag_X10"),
+  family = "gaussian",
+  data = train,
+  id = "id",
+  time = "time",
+  random = ~ 1 + time | id,
+  autocor = "CS", # AR(1) | CS | TOEP
+  directional_tests = list(
+    lag_X1 = "positive", lag_X2 = "positive", lag_X3 = "positive",
+    lag_X4 = "positive", lag_X5 = "positive", lag_X6 = "positive",
+    lag_X7 = "positive", lag_X8 = "positive", lag_X9 = "positive",
+    lag_X10 = "positive"),
+  significance_alpha = 0.05,
+  dot_threshold = 0,
+  dot_alternative = "greater",
+  screen_nonlinear = TRUE,
+  engine = "cpp"
+)
+
+str(summary(setModel))
+
+summary(setModel)$assumption_check_table
+setModel$assumption_checks$tables$Autocorrelation
+
+
+### 3.2. Fit MEMWAS -----
+fitMEMWAS <- fit_MEMWAS(setModel)
+
+summary(fitMEMWAS)
+
+summary(fitMEMWAS)$coefficients
+
+### 3.3. Varify Fit MEMWAS -----
+test$pred <- predict(
+  fitMEMWAS, newdata = test,
+  type = "response")
+
+test$residual <- test$y - test$pred
+
+y <- test$y
+pred <- test$pred
+e <- test$residual
+mse <- mean(e^2)
+mape_terms <- abs((y - pred) / ifelse(abs(y) <= .Machine$double.eps, NA_real_, y))
+mape <- mean(mape_terms[is.finite(mape_terms)], na.rm = TRUE) * 100
+smape_terms <- 2 * abs(pred - y) / pmax(abs(y) + abs(pred), .Machine$double.eps)
+smape <- mean(smape_terms[is.finite(smape_terms)], na.rm = TRUE) * 100
+
+MEMWAS_metrics <- data.frame(
+  model = "MEMWAS",
+  MAE = mean(abs(e)), MSE = mse, RMSE = sqrt(mse),
+  MAPE = mape, SMAPE = smape)
+
+
+## 4. Traditional GLMM -----
+fitLme4 <- lme4::glmer(
+  as.formula(
+    "y ~ lag_X1 + lag_X2 + lag_X3 + lag_X4 + lag_X5 +
+    lag_X6 + lag_X7 + lag_X8 + lag_X9 + lag_X10 + (1 + time | id)"),
+  data = train, family = gaussian)
+
+## 2. Execute prediction (GLMM)
+test$pred <- predict(
+  fitLme4, newdata = test,
+  type = "response", allow.new.levels = TRUE)
+
+## 3. Check quality (GLMM)
+test$residual <- test$y - test$pred
+
+y <- test$y
+pred <- test$pred
+e <- test$residual
+mse <- mean(e^2)
+mape_terms <- abs((y - pred) / ifelse(abs(y) <= .Machine$double.eps, NA_real_, y))
+mape <- mean(mape_terms[is.finite(mape_terms)], na.rm = TRUE) * 100
+smape_terms <- 2 * abs(pred - y) / pmax(abs(y) + abs(pred), .Machine$double.eps)
+smape <- mean(smape_terms[is.finite(smape_terms)], na.rm = TRUE) * 100
+
+GLMM_metrics <- data.frame(
+  method = "GLMM",
+  MAE = mean(abs(e)), MSE = mse, RMSE = sqrt(mse),
+  MAPE = mape, SMAPE = smape)
+
+MEMWAS_metrics
+GLMM_metrics
+
+
+## 5.. Tune MEMWAS -----
+### 5.1. Execute tuning -----
+finalModel <- tune_MEMWAS(
+  setModel,
+  K = 3,
+  metric = "MAE",
+  #stability_metric = "IQR",
+  #surrogate = "QRS",
+  n_initial = 5,
+  lambda_log_range = c(-6, 2),
+  max_iter = 5,
+  candidate_grid_size = 10,
+  seed = 20260824
+)
+
+summary(finalModel)
+
+### 5.2. Varify Tune model -----
+test$pred <- predict(
+  finalModel, newdata = test,
+  type = "response")
+
+test$residual <- test$y - test$pred
+
+y <- test$y
+pred <- test$pred
+e <- test$residual
+mse <- mean(e^2)
+mape_terms <- abs((y - pred) / ifelse(abs(y) <= .Machine$double.eps, NA_real_, y))
+mape <- mean(mape_terms[is.finite(mape_terms)], na.rm = TRUE) * 100
+smape_terms <- 2 * abs(pred - y) / pmax(abs(y) + abs(pred), .Machine$double.eps)
+smape <- mean(smape_terms[is.finite(smape_terms)], na.rm = TRUE) * 100
+
+tune_metrics <- data.frame(
+  model = "Tune",
+  MAE = mean(abs(e)), MSE = mse, RMSE = sqrt(mse),
+  MAPE = mape, SMAPE = smape)
+
+MEMWAS_metrics
+GLMM_metrics
+tune_metrics

@@ -1,0 +1,38 @@
+Package: MEMWAS
+Type: Package
+Title: Mixed Effects Models with Autocorrelation Structures
+Version: 0.1.1
+Date: 2026-07-13
+Authors@R: c(person("Enoch", "Kang", role = c("aut", "cre", "trl"),
+    comment = c(ORCID = "0000-0002-4903-942X"),
+    email = "y.enoch.kang@gmail.com"))
+Description: Fits longitudinal mixed-effects models for Gaussian,
+    Bernoulli/grouped-binomial, Poisson, negative-binomial, Gamma, and
+    exponential outcomes. Models may combine fixed effects, Gaussian random
+    effects, offsets, fixed-effect penalties, and multiple independent named
+    serial processes in one likelihood. Each serial process has a one-column
+    design and its own AR(1), exponential/Ornstein-Uhlenbeck, AR(p),
+    ARMA(1,1), compound-symmetry, Toeplitz, or unstructured covariance,
+    permitting residual and predictor-modulated autocorrelation structures to
+    be estimated simultaneously. Grouped-binomial totals, family links,
+    conditional predictions, and serial-component contributions are retained
+    consistently through fitting and prediction. Besides, the MEMWAS package
+    offers an integrated transparency advantage by embedding configurable 
+    assumption screening and structured diagnostic reporting within the model-
+    analysis workflow. This design supports research integrity by making 
+    diagnostic choices, findings, limitations, and unavailable tests more 
+    visible and auditable.
+License: GPL (>= 3)
+Depends: R (>= 4.6.0)
+Imports: stats, utils
+Suggests: knitr, rmarkdown, roxygen2, testthat (>= 3.0.0)
+NeedsCompilation: yes
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
+Language: en-US
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
+Author: Enoch Kang [aut, cre, trl] (ORCID:
+    <https://orcid.org/0000-0002-4903-942X>)
+Maintainer: Enoch Kang <y.enoch.kang@gmail.com>
